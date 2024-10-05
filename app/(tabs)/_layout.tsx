@@ -40,6 +40,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="addpost"
+        options={{
+          title: "Add",
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? "add-outline" : "add"} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",

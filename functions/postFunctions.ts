@@ -31,13 +31,15 @@ export const getPostByLocation = async (
 };
 
 export const getPostsByUsername = async (username: string): Promise<Post[]> => {
-  const response = await fetch(`${BASE_URL}/posts/${username}`);
+  const response = await fetch(`${BASE_URL}/posts/username/${username}`);
   if (!response.ok) throw new Error("Failed to fetch posts");
   const data = await response.json();
   return data as Post[];
 };
 
-export const createPost = async (postData: Omit<Post, "id">): Promise<Post> => {
+export const createPost = async (
+  postData: Omit<Post, "_id">
+): Promise<Post> => {
   const response = await fetch(`${BASE_URL}/posts/`, {
     method: "POST",
     headers: {

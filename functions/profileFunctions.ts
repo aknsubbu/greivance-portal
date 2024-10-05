@@ -1,66 +1,81 @@
 // profileFunctions.ts
 
-import Profile from "@/interfaces/Profile";
+import axios from "axios";
 
 const BASE_URL = "https://activity-point-program-backend.onrender.com/api";
 
-export const getAllProfiles = async (): Promise<Profile[]> => {
-  const response = await fetch(`${BASE_URL}/profiles/`);
-  if (!response.ok) throw new Error("Failed to fetch profiles");
-  const data = await response.json();
-  return data as Profile[];
+const api = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+export const getAllProfiles = async (): Promise<any> => {
+  try {
+    const response = await api.get("/profile/");
+    console.log("All profiles response");
+    return response.data;
+  } catch (error) {
+    console.error("Error in getAllProfiles:", error);
+    throw error;
+  }
 };
 
-export const getProfileById = async (id: string): Promise<Profile> => {
-  const response = await fetch(`${BASE_URL}/profiles/${id}`);
-  if (!response.ok) throw new Error("Failed to fetch profile");
-  const data = await response.json();
-  return data as Profile;
+export const getProfileById = async (id: string): Promise<any> => {
+  try {
+    const response = await api.get(`/profile/${id}`);
+    console.log("Profile by ID response");
+    console.log(response.data["profilePicture"]);
+    return response.data;
+  } catch (error) {
+    console.error("Error in getProfileById:", error);
+    throw error;
+  }
 };
 
-export const getProfileByUsername = async (
-  username: string
-): Promise<Profile> => {
-  const response = await fetch(`${BASE_URL}/profiles/${username}`);
-  if (!response.ok) throw new Error("Failed to fetch profile");
-  const data = await response.json();
-  return data as Profile;
+export const getProfileByUsername = async (username: string): Promise<any> => {
+  try {
+    const response = await api.get(`/profile/username/${username}`);
+    console.log("Profile by username response:", response);
+    return response.data;
+  } catch (error) {
+    console.error("Error in getProfileByUsername:", error);
+    throw error;
+  }
 };
 
-export const createProfile = async (
-  profileData: Omit<Profile, "id">
-): Promise<Profile> => {
-  const response = await fetch(`${BASE_URL}/profiles/`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(profileData),
-  });
-  if (!response.ok) throw new Error("Failed to create profile");
-  const data = await response.json();
-  return data as Profile;
+export const createProfile = async (profileData: any): Promise<any> => {
+  try {
+    const response = await api.post("/profile/", profileData);
+    console.log("Create profile response:", response);
+    return response.data;
+  } catch (error) {
+    console.error("Error in createProfile:", error);
+    throw error;
+  }
 };
 
 export const updateProfile = async (
   id: string,
-  profileData: Partial<Profile>
-): Promise<Profile> => {
-  const response = await fetch(`${BASE_URL}/profiles/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(profileData),
-  });
-  if (!response.ok) throw new Error("Failed to update profile");
-  const data = await response.json();
-  return data as Profile;
+  profileData: any
+): Promise<any> => {
+  try {
+    const response = await api.put(`/profile/${id}`, profileData);
+    console.log("Update profile response:", response);
+    return response.data;
+  } catch (error) {
+    console.error("Error in updateProfile:", error);
+    throw error;
+  }
 };
 
 export const deleteProfile = async (id: string): Promise<void> => {
-  const response = await fetch(`${BASE_URL}/profiles/${id}`, {
-    method: "DELETE",
-  });
-  if (!response.ok) throw new Error("Failed to delete profile");
+  try {
+    const response = await api.delete(`/profile/${id}`);
+    console.log("Delete profile response:", response);
+  } catch (error) {
+    console.error("Error in deleteProfile:", error);
+    throw error;
+  }
 };

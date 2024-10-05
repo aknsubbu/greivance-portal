@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   ScrollView,
@@ -19,6 +19,8 @@ import {
   Portal,
   TextInput,
 } from "react-native-paper";
+import { getProfileFromStorage } from "@/functions/profileAsyncStorage";
+import Profile from "@/interfaces/Profile";
 
 type DialogNames = "privacy" | "password" | "language";
 
@@ -27,6 +29,7 @@ type DialogState = {
 };
 
 const SettingsPage = () => {
+  const [profile, setProfile] = useState<Profile | null>(null);
   const theme = useTheme();
   const [notifications, setNotifications] = useState(true);
   const [language, setLanguage] = useState("English");
@@ -146,6 +149,12 @@ const SettingsPage = () => {
     </Dialog>
   );
 
+  useEffect(() => {
+    getProfileFromStorage().then((profile) => {
+      setProfile(profile);
+    });
+  }, []);
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
@@ -154,12 +163,14 @@ const SettingsPage = () => {
         <List.Section>
           <List.Subheader>Account</List.Subheader>
           <List.Item
-            title="John Doe"
-            description="john.doe@example.com"
+            title={profile?.name}
+            description={profile?.userName}
             left={() => (
               <Avatar.Image
                 size={40}
-                source={{ uri: "https://example.com/profile.jpg" }}
+                source={{
+                  uri: `data:image/jpeg;base64,${profile?.profilePicture}`,
+                }}
               />
             )}
           />

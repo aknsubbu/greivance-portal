@@ -3,6 +3,9 @@ import { View, ScrollView, SafeAreaView, Text } from "react-native";
 import { Bell } from "lucide-react-native"; // Ensure correct import
 import PostCard from "@/components/PostCard";
 import Post from "@/interfaces/Post";
+import Profile from "@/interfaces/Profile";
+
+import { getProfileFromStorage } from "@/functions/profileAsyncStorage";
 
 const fetchPosts = (): Promise<Post[]> => {
   return new Promise((resolve) => {
@@ -46,10 +49,14 @@ const fetchPosts = (): Promise<Post[]> => {
 
 export default function HomeScreen() {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const userName = "John"; // This should be fetched from your user state or context
 
   useEffect(() => {
+    getProfileFromStorage().then((fetchedProfile) => {
+      setProfile(fetchedProfile);
+    });
     fetchPosts()
       .then((fetchedPosts: Post[]) => {
         setPosts(fetchedPosts);
@@ -62,18 +69,16 @@ export default function HomeScreen() {
   }, []);
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100 dark:bg-gray-900">
-      <View className="flex-row justify-between items-center px-4 py-2 bg-blue-100 dark:bg-gray-900/20">
+    <SafeAreaView className="flex-1 bg-[#EEEEEE]">
+      <View className="flex-row justify-between items-center px-4 py-2 bg-[#201E43]">
         <View className="flex flex-col">
-          <Text className="text-xl font-bold text-gray-800 dark:text-gray-200">
-            Hi,
-          </Text>
-          <Text className="text-2xl font-light text-gray-800 dark:text-gray-200">
-            {userName}
+          <Text className="text-xl font-bold text-gray-200">Hi,</Text>
+          <Text className="text-2xl font-light text-gray-200">
+            {profile?.userName}
           </Text>
         </View>
         <View>
-          <Bell size={24} className="text-gray-800 dark:text-gray-200" />
+          <Bell size={24} className="text-gray-100" />
         </View>
       </View>
       <ScrollView className="flex-1">

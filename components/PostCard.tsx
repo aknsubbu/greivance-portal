@@ -13,9 +13,7 @@ import {
   IconButton,
   Text,
   Chip,
-  useTheme,
   Surface,
-  Button,
 } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Post from "@/interfaces/Post";
@@ -110,8 +108,8 @@ const CommentsModal = ({
     </Modal>
   );
 };
+
 export default function PostCard({ post }: PostProps) {
-  const theme = useTheme();
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(post.postLikes.length);
   const [commentsVisible, setCommentsVisible] = useState(false);
@@ -147,7 +145,12 @@ export default function PostCard({ post }: PostProps) {
             {new Date(post.postDate).toLocaleDateString()}
           </Text>
         </View>
-        <IconButton icon="dots-horizontal" size={20} onPress={() => {}} />
+        <IconButton
+          icon="dots-horizontal"
+          size={20}
+          onPress={() => {}}
+          iconColor="#fff"
+        />
       </View>
 
       <Paragraph style={styles.description}>{post.postDescription}</Paragraph>
@@ -170,7 +173,7 @@ export default function PostCard({ post }: PostProps) {
           <MaterialCommunityIcons
             name="map-marker-outline"
             size={16}
-            color={theme.colors.primary}
+            color="#fff"
           />
           <Text style={styles.locationText}>
             {post.postLocation.join(", ")}
@@ -184,11 +187,17 @@ export default function PostCard({ post }: PostProps) {
             icon="comment-outline"
             size={20}
             onPress={() => setCommentsVisible(true)}
+            iconColor="#fff"
           />
           <Text style={styles.actionText}>{comments.length}</Text>
         </View>
         <View style={styles.actionGroup}>
-          <IconButton icon="repeat" size={20} onPress={() => {}} />
+          <IconButton
+            icon="repeat"
+            size={20}
+            onPress={() => {}}
+            iconColor="#fff"
+          />
           <Text style={styles.actionText}>0</Text>
         </View>
         <View style={styles.actionGroup}>
@@ -196,17 +205,18 @@ export default function PostCard({ post }: PostProps) {
             icon={liked ? "heart" : "heart-outline"}
             size={20}
             onPress={handleLike}
-            iconColor={liked ? theme.colors.error : theme.colors.backdrop}
+            iconColor={liked ? "#ff6b6b" : "#fff"}
           />
           <Text style={styles.actionText}>{likeCount}</Text>
         </View>
-        <IconButton icon="share-variant-outline" size={20} onPress={() => {}} />
+        <IconButton
+          icon="share-variant-outline"
+          size={20}
+          onPress={() => {}}
+          iconColor="#fff"
+        />
         <View style={styles.viewsContainer}>
-          <MaterialCommunityIcons
-            name="eye-outline"
-            size={16}
-            color={theme.colors.primary}
-          />
+          <MaterialCommunityIcons name="eye-outline" size={16} color="#fff" />
           <Text style={styles.viewsText}>{post.postViewCounter}</Text>
         </View>
       </View>
@@ -227,6 +237,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     borderRadius: 12,
     padding: 16,
+    backgroundColor: "#201E43",
   },
   headerContainer: {
     flexDirection: "row",
@@ -240,16 +251,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: "bold",
+    color: "#fff",
   },
   date: {
     fontSize: 12,
-    color: "gray",
+    color: "#b3b3b3",
     marginTop: 2,
   },
   description: {
     fontSize: 14,
     marginBottom: 16,
     lineHeight: 20,
+    color: "#e0e0e0",
   },
   tagsContainer: {
     flexDirection: "row",
@@ -260,9 +273,11 @@ const styles = StyleSheet.create({
     marginRight: 8,
     marginBottom: 8,
     backgroundColor: "transparent",
+    borderColor: "#4a4a4a",
   },
   tagText: {
     fontSize: 12,
+    color: "#b3b3b3",
   },
   locationContainer: {
     flexDirection: "row",
@@ -271,7 +286,7 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 12,
-    color: "gray",
+    color: "#b3b3b3",
     marginLeft: 4,
   },
   actionsContainer: {
@@ -285,7 +300,7 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: 12,
-    color: "gray",
+    color: "#b3b3b3",
     marginLeft: -8,
   },
   viewsContainer: {
@@ -294,10 +309,9 @@ const styles = StyleSheet.create({
   },
   viewsText: {
     fontSize: 12,
-    color: "gray",
+    color: "#b3b3b3",
     marginLeft: 4,
   },
-
   commentItem: {
     marginBottom: 15,
   },
@@ -307,10 +321,10 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   commentText: {
-    color: "#fff",
+    color: "#e0e0e0",
   },
   authorTag: {
-    color: "#777",
+    color: "#b3b3b3",
     fontSize: 12,
     marginTop: 2,
   },
@@ -318,10 +332,9 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   replyText: {
-    color: "#777",
+    color: "#b3b3b3",
     fontSize: 14,
   },
-
   modalContainer: {
     flex: 1,
     justifyContent: "flex-end",
