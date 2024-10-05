@@ -106,7 +106,7 @@ const AddPost = () => {
         <Text className="text-lg font-bold">Create New Post</Text>
         <View style={{ width: 40 }} />
       </View>
-      <ScrollView className="flex-1 p-4 pt-10">
+      <ScrollView className="flex-1 p-4 pt-5 pb-5">
         <Chip className="text-sm font-light mb-2" icon="google-maps">
           You are at: {locationState.latitude},{locationState.longitude}
         </Chip>
