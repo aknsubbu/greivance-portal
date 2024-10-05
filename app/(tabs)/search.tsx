@@ -1,102 +1,215 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { StyleSheet, Image, Platform } from 'react-native';
+import React, { useState, useEffect } from "react";
+import { View, FlatList, StyleSheet, SafeAreaView } from "react-native";
+import {
+  Searchbar,
+  Chip,
+  Card,
+  Paragraph,
+  Title,
+  Button,
+  Menu,
+  Divider,
+  List,
+} from "react-native-paper";
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
 
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+type Post = {
+  id: string;
+  title: string;
+  author: string;
+  date: Date;
+  location: string;
+  content: string;
+};
 
-export default function TabTwoScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={<Ionicons size={310} name="code-slash" style={styles.headerImage} />}>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user's current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText> library
-          to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+type FilterOptions = {
+  title: boolean;
+  author: boolean;
+  date: boolean;
+  location: boolean;
+};
+
+const SearchPage: React.FC = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
+    title: true,
+    author: true,
+    date: false,
+    location: true,
+  });
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
+  const [datePickerVisible, setDatePickerVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  // Simulated data fetching
+  useEffect(() => {
+    // This would typically be an API call
+    const fetchedPosts: Post[] = [
+      {
+        id: "1",
+        title: "First Post",
+        author: "John Doe",
+        date: new Date("2023-05-01"),
+        location: "New York",
+        content: "Content of first post",
+      },
+      {
+        id: "2",
+        title: "Second Post",
+        author: "Jane Smith",
+        date: new Date("2023-05-15"),
+        location: "Los Angeles",
+        content: "Content of second post",
+      },
+      // Add more sample posts as needed
+    ];
+    setPosts(fetchedPosts);
+  }, []);
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    const lowercasedQuery = query.toLowerCase();
+    const filtered = posts.filter((post) => {
+      return (
+        (filterOptions.title &&
+          post.title.toLowerCase().includes(lowercasedQuery)) ||
+        (filterOptions.author &&
+          post.author.toLowerCase().includes(lowercasedQuery)) ||
+        (filterOptions.location &&
+          post.location.toLowerCase().includes(lowercasedQuery)) ||
+        (filterOptions.date &&
+          post.date.toDateString().toLowerCase().includes(lowercasedQuery))
+      );
+    });
+    setFilteredPosts(filtered);
+  };
+
+  const toggleFilterOption = (option: keyof FilterOptions) => {
+    setFilterOptions((prev) => ({ ...prev, [option]: !prev[option] }));
+  };
+
+  const handleDateChange = (
+    event: DateTimePickerEvent,
+    selectedDate?: Date
+  ) => {
+    setDatePickerVisible(false);
+    if (selectedDate) {
+      setSelectedDate(selectedDate);
+      handleSearch(selectedDate.toDateString());
+    }
+  };
+
+  const renderPostItem = ({ item }: { item: Post }) => (
+    <Card style={styles.card}>
+      <Card.Content>
+        <Title>{item.title}</Title>
+        <Paragraph>Author: {item.author}</Paragraph>
+        <Paragraph>Date: {item.date.toDateString()}</Paragraph>
+        <Paragraph>Location: {item.location}</Paragraph>
+      </Card.Content>
+    </Card>
   );
-}
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <Searchbar
+        placeholder="Search posts"
+        onChangeText={handleSearch}
+        value={searchQuery}
+        style={styles.searchBar}
+      />
+      <View style={styles.filterContainer}>
+        <Chip
+          selected={filterOptions.title}
+          onPress={() => toggleFilterOption("title")}
+          style={styles.filterChip}
+        >
+          Title
+        </Chip>
+        <Chip
+          selected={filterOptions.author}
+          onPress={() => toggleFilterOption("author")}
+          style={styles.filterChip}
+        >
+          Author
+        </Chip>
+        <Chip
+          selected={filterOptions.location}
+          onPress={() => toggleFilterOption("location")}
+          style={styles.filterChip}
+        >
+          Location
+        </Chip>
+        <Menu
+          visible={menuVisible}
+          onDismiss={() => setMenuVisible(false)}
+          anchor={
+            <Button onPress={() => setMenuVisible(true)}>Date Filter</Button>
+          }
+        >
+          <Menu.Item
+            onPress={() => {
+              setDatePickerVisible(true);
+              setMenuVisible(false);
+            }}
+            title="Select Date"
+          />
+          <Divider />
+          <Menu.Item
+            onPress={() => {
+              setSelectedDate(new Date());
+              handleSearch("");
+              setMenuVisible(false);
+            }}
+            title="Clear Date Filter"
+          />
+        </Menu>
+      </View>
+      {datePickerVisible && (
+        <DateTimePicker
+          value={selectedDate}
+          mode="date"
+          display="default"
+          onChange={handleDateChange}
+        />
+      )}
+      <FlatList
+        data={filteredPosts}
+        renderItem={renderPostItem}
+        keyExtractor={(item) => item.id}
+        style={styles.list}
+      />
+    </SafeAreaView>
+  );
+};
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
+    padding: 10,
   },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
+  searchBar: {
+    marginBottom: 10,
+  },
+  filterContainer: {
+    flexDirection: "row",
+    marginBottom: 10,
+    flexWrap: "wrap",
+  },
+  filterChip: {
+    marginRight: 5,
+    marginBottom: 5,
+  },
+  card: {
+    marginBottom: 10,
+  },
+  list: {
+    flex: 1,
   },
 });
+
+export default SearchPage;
