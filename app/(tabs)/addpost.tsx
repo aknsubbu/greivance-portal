@@ -37,12 +37,13 @@ const AddPost = () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [4, 3],
+      aspect: [1, 1],
       quality: 1,
+      base64: true,
     });
 
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
+    if (!result.canceled && result.assets[0].base64) {
+      setImage(result.assets[0].base64);
       setImageType(result.assets[0].type || "image/jpeg");
     }
   };

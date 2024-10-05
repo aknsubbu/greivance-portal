@@ -1,11 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Image,
-  RefreshControl,
-} from "react-native";
+import { View, ScrollView, Image, RefreshControl } from "react-native";
 import {
   Text,
   Avatar,
@@ -19,6 +13,7 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Profile from "@/interfaces/Profile";
 import Post from "@/interfaces/Post";
+import EditProfileModal from "@/components/EditProfile";
 
 import { getProfileFromStorage } from "@/functions/profileAsyncStorage";
 import { getPostsByUsername } from "@/functions/postFunctions";
@@ -30,6 +25,7 @@ const ProfilePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editModalVisible, setEditModalVisible] = useState(false);
 
   const fetchProfileData = useCallback(async () => {
     try {
@@ -58,9 +54,13 @@ const ProfilePage: React.FC = () => {
     fetchProfileData();
   }, [fetchProfileData]);
 
+  const handleProfileUpdate = (updatedProfile: Profile) => {
+    setProfile(updatedProfile);
+  };
+
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View className="flex-1 justify-center items-center">
         <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
@@ -69,8 +69,7 @@ const ProfilePage: React.FC = () => {
   if (error || !profile) {
     return (
       <ScrollView
-        style={[styles.container, { backgroundColor: theme.colors.background }]}
-        className="pt-10"
+        className="flex-1 bg-white pt-10"
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -79,7 +78,7 @@ const ProfilePage: React.FC = () => {
           />
         }
       >
-        <View style={styles.errorContainer}>
+        <View className="flex-1 justify-center items-center p-5">
           <Text>{error || "Failed to load profile"}</Text>
         </View>
       </ScrollView>
@@ -87,7 +86,7 @@ const ProfilePage: React.FC = () => {
   }
 
   const renderActivity = (item: Profile["postsOrComments"][0]) => (
-    <Card style={styles.activityCard} key={item._id}>
+    <Card className="mb-4" key={item._id}>
       <Card.Title
         title={item.type === "post" ? "Posted" : "Commented"}
         subtitle={new Date(item.createdAt).toLocaleDateString()}
@@ -104,186 +103,160 @@ const ProfilePage: React.FC = () => {
     </Card>
   );
 
-  return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-      className="pt-10"
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          colors={[theme.colors.primary]}
-        />
-      }
-    >
-      <View style={styles.header}>
-        {profile.profilePicture ? (
-          <Image
-            source={{ uri: `data:image/jpeg;base64,${profile.profilePicture}` }}
-            className="rounded-full"
-            width={120}
-            height={120}
-          />
-        ) : (
-          <Avatar.Text size={120} label={profile.name[0] || "U"} />
-        )}
-        <Text style={styles.name}>{profile.name}</Text>
-        <Chip icon="tag" style={styles.tagChip}>
-          {profile.tag || "No tag"}
-        </Chip>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>About</Text>
-        <View style={styles.infoRow}>
-          <MaterialCommunityIcons
-            name="map-marker"
-            size={20}
-            color={theme.colors.primary}
-          />
-          <Text style={styles.infoText}>
-            {profile.location || "No location set"}
-          </Text>
-        </View>
-        <View style={styles.infoRow}>
-          <MaterialCommunityIcons
-            name="calendar"
-            size={20}
-            color={theme.colors.primary}
-          />
-          <Text style={styles.infoText}>
-            {profile.dateOfBirth
-              ? new Date(profile.dateOfBirth).toLocaleDateString()
-              : "No birth date set"}
-          </Text>
-        </View>
-        <Text style={styles.description}>
-          {profile.profileDescription || "No description available."}
+  const renderPostCard = (post: Post) => (
+    <Card className="mb-4" key={post._id}>
+      <Card.Title
+        title={post.postTitle}
+        subtitle={new Date(post.postDate).toLocaleDateString()}
+      />
+      {post.postImage && <Card.Cover source={{ uri: post.postImage }} />}
+      <Card.Content>
+        <Text numberOfLines={3} className="mb-2">
+          {post.postDescription}
         </Text>
-      </View>
-
-      <View style={styles.statsContainer}>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{profile.noOfPosts || 0}</Text>
-          <Text style={styles.statLabel}>Posts</Text>
+        <View className="flex-row justify-around">
+          <View className="flex-row items-center">
+            <MaterialCommunityIcons
+              name="heart"
+              size={20}
+              color={theme.colors.primary}
+            />
+            <Text className="ml-1">{post.postLikes.length}</Text>
+          </View>
+          <View className="flex-row items-center">
+            <MaterialCommunityIcons
+              name="eye"
+              size={20}
+              color={theme.colors.primary}
+            />
+            <Text className="ml-1">{post.postViewCounter}</Text>
+          </View>
+          <View className="flex-row items-center">
+            <MaterialCommunityIcons
+              name="comment"
+              size={20}
+              color={theme.colors.primary}
+            />
+            <Text className="ml-1">{post.postComments.length}</Text>
+          </View>
         </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>
-            {profile.postsOrComments?.length || 0}
-          </Text>
-          <Text style={styles.statLabel}>Activities</Text>
-        </View>
-      </View>
+      </Card.Content>
+    </Card>
+  );
 
-      <Button
-        mode="contained"
-        icon="pencil"
-        onPress={() => console.log("Edit profile")}
-        style={styles.editButton}
+  return (
+    <>
+      <ScrollView
+        className="flex-1 bg-white pt-10"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[theme.colors.primary]}
+          />
+        }
       >
-        Edit Profile
-      </Button>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Popular Tags</Text>
-        <View style={styles.tagsContainer}>
-          {Object.entries(profile.postTags || {})
-            .slice(0, 5)
-            .map(([tag, count]) => (
-              <Chip
-                key={tag}
-                style={styles.tagChip}
-              >{`${tag} (${count})`}</Chip>
-            ))}
+        <View className="items-center p-5">
+          {profile.profilePicture ? (
+            <Image
+              source={{
+                uri: `data:image/jpeg;base64,${profile.profilePicture}`,
+              }}
+              className="rounded-full w-30 h-30"
+              width={120}
+              height={120}
+            />
+          ) : (
+            <Avatar.Text size={120} label={profile.name[0] || "U"} />
+          )}
+          <Text className="text-2xl font-bold mt-2">{profile.name}</Text>
+          <Chip icon="tag" className="mt-2">
+            {profile.tag || "No tag"}
+          </Chip>
         </View>
-      </View>
 
-      <Divider style={styles.divider} />
+        <View className="p-5">
+          <Text className="text-xl font-bold mb-2">About</Text>
+          <View className="flex-row items-center mb-1">
+            <MaterialCommunityIcons
+              name="map-marker"
+              size={20}
+              color={theme.colors.primary}
+            />
+            <Text className="ml-2">
+              {profile.location || "No location set"}
+            </Text>
+          </View>
+          <View className="flex-row items-center mb-1">
+            <MaterialCommunityIcons
+              name="calendar"
+              size={20}
+              color={theme.colors.primary}
+            />
+            <Text className="ml-2">
+              {profile.dateOfBirth
+                ? new Date(profile.dateOfBirth).toLocaleDateString()
+                : "No birth date set"}
+            </Text>
+          </View>
+          <Text className="mt-2">
+            {profile.profileDescription || "No description available."}
+          </Text>
+        </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Recent Activity</Text>
-        {profile.postsOrComments?.map(renderActivity) || (
-          <Text>No recent activity</Text>
-        )}
-      </View>
-    </ScrollView>
+        <View className="flex-row justify-around p-5">
+          <View className="items-center">
+            <Text className="text-xl font-bold">{profile.noOfPosts || 0}</Text>
+            <Text className="text-gray-600">Posts</Text>
+          </View>
+          <View className="items-center">
+            <Text className="text-xl font-bold">
+              {profile.postsOrComments?.length || 0}
+            </Text>
+            <Text className="text-gray-600">Activities</Text>
+          </View>
+        </View>
+
+        <Button
+          mode="contained"
+          icon="pencil"
+          onPress={() => setEditModalVisible(true)}
+          className="mx-5 mb-5"
+        >
+          Edit Profile
+        </Button>
+
+        <View className="p-5">
+          <Text className="text-xl font-bold mb-2">Popular Tags</Text>
+          <View className="flex-row flex-wrap">
+            {Object.entries(profile.postTags || {})
+              .slice(0, 6)
+              .map(([tag, count]) => (
+                <Chip key={tag} className="m-1">{`${tag} (${count})`}</Chip>
+              ))}
+          </View>
+        </View>
+
+        <Divider className="my-2" />
+
+        <View className="p-5 pb-20">
+          <Text className="text-xl font-bold mb-2">User Posts</Text>
+          {posts.length > 0 ? (
+            posts.map(renderPostCard)
+          ) : (
+            <Text>No posts available</Text>
+          )}
+        </View>
+      </ScrollView>
+
+      <EditProfileModal
+        visible={editModalVisible}
+        onDismiss={() => setEditModalVisible(false)}
+        profile={profile}
+        onProfileUpdate={handleProfileUpdate}
+      />
+    </>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    alignItems: "center",
-    padding: 20,
-  },
-  name: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginTop: 10,
-  },
-  section: {
-    padding: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 5,
-  },
-  infoText: {
-    marginLeft: 10,
-  },
-  description: {
-    marginTop: 10,
-  },
-  statsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    padding: 20,
-  },
-  statItem: {
-    alignItems: "center",
-  },
-  statNumber: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  statLabel: {
-    color: "gray",
-  },
-  editButton: {
-    margin: 20,
-  },
-  tagsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-  },
-  tagChip: {
-    margin: 5,
-  },
-  divider: {
-    marginVertical: 10,
-  },
-  activityCard: {
-    marginBottom: 10,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-});
 
 export default ProfilePage;

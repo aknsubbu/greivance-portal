@@ -1,12 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { View, ScrollView, SafeAreaView, Text } from "react-native";
-import { Bell } from "lucide-react-native"; // Ensure correct import
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  ScrollView,
+  SafeAreaView,
+  Text,
+  RefreshControl,
+} from "react-native";
+import { Bell } from "lucide-react-native";
 import PostCard from "@/components/PostCard";
 import Post from "@/interfaces/Post";
 import Profile from "@/interfaces/Profile";
-
 import { getProfileFromStorage } from "@/functions/profileAsyncStorage";
 
+// Mock function to fetch posts (replace with actual API call)
 const fetchPosts = (): Promise<Post[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -51,22 +57,32 @@ export default function HomeScreen() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const userName = "John"; // This should be fetched from your user state or context
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadData = useCallback(async () => {
+    try {
+      const [fetchedProfile, fetchedPosts] = await Promise.all([
+        getProfileFromStorage(),
+        fetchPosts(),
+      ]);
+      setProfile(fetchedProfile);
+      setPosts(fetchedPosts);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
   useEffect(() => {
-    getProfileFromStorage().then((fetchedProfile) => {
-      setProfile(fetchedProfile);
-    });
-    fetchPosts()
-      .then((fetchedPosts: Post[]) => {
-        setPosts(fetchedPosts);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching posts:", error);
-        setLoading(false);
-      });
-  }, []);
+    loadData();
+  }, [loadData]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadData();
+  }, [loadData]);
 
   return (
     <SafeAreaView className="flex-1 bg-[#EEEEEE]">
@@ -74,25 +90,38 @@ export default function HomeScreen() {
         <View className="flex flex-col">
           <Text className="text-xl font-bold text-gray-200">Hi,</Text>
           <Text className="text-2xl font-light text-gray-200">
-            {profile?.userName}
+            {profile?.userName || "Guest"}
           </Text>
         </View>
         <View>
-          <Bell size={24} className="text-gray-100" />
+          <Bell size={24} color="#F1F1F1" />
         </View>
       </View>
-      <ScrollView className="flex-1">
+      <ScrollView
+        className="flex-1"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#201E43"]}
+          />
+        }
+      >
         <View className="p-4">
           {loading ? (
             <Text className="text-center text-gray-600 dark:text-gray-400">
               Loading posts...
             </Text>
-          ) : (
+          ) : posts.length > 0 ? (
             posts.map((post) => (
               <View key={post._id} className="mb-4">
                 <PostCard post={post} />
               </View>
             ))
+          ) : (
+            <Text className="text-center text-gray-600 dark:text-gray-400">
+              No posts available.
+            </Text>
           )}
         </View>
       </ScrollView>
