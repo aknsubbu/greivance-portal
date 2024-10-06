@@ -24,6 +24,7 @@ import { getAllPosts } from "@/functions/postFunctions";
 import { getProfileFromStorage } from "@/functions/profileAsyncStorage";
 
 export default function HomeScreen() {
+  const theme = useTheme();
   const [posts, setPosts] = useState<Post[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,6 +53,14 @@ export default function HomeScreen() {
     setRefreshing(true);
     loadData();
   }, [loadData]);
+
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-[#EEEEEE]">
