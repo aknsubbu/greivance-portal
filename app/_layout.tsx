@@ -14,7 +14,7 @@ import { saveProfile } from "@/functions/profileAsyncStorage";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import ErrorScreen from "./ErrorPage";
 
-SplashScreen.preventAutoHideAsync();
+// SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
