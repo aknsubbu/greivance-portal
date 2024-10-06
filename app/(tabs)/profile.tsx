@@ -35,6 +35,7 @@ const ProfilePage: React.FC = () => {
       if (profileData?.userName) {
         const postsData = await getPostsByUsername(profileData.userName);
         setPosts(postsData);
+        console.log(posts);
       }
     } catch (err) {
       setError("Failed to fetch profile data");
@@ -108,9 +109,12 @@ const ProfilePage: React.FC = () => {
       <Card.Title
         title={post.postTitle}
         subtitle={new Date(post.postDate).toLocaleDateString()}
+        className="m-1"
       />
-      {post.postImage && <Card.Cover source={{ uri: post.postImage }} />}
-      <Card.Content>
+      {post.postImage && (
+        <Card.Cover source={{ uri: post.postImage }} className="m-2" />
+      )}
+      <Card.Content className="mt-5">
         <Text numberOfLines={3} className="mb-2">
           {post.postDescription}
         </Text>
@@ -170,8 +174,8 @@ const ProfilePage: React.FC = () => {
             <Avatar.Text size={120} label={profile.name[0] || "U"} />
           )}
           <Text className="text-2xl font-bold mt-2">{profile.name}</Text>
-          <Chip icon="tag" className="mt-2">
-            {profile.tag || "No tag"}
+          <Chip icon="account" className="mt-2">
+            {profile.userName || "No tag"}
           </Chip>
         </View>
 
@@ -206,7 +210,7 @@ const ProfilePage: React.FC = () => {
 
         <View className="flex-row justify-around p-5">
           <View className="items-center">
-            <Text className="text-xl font-bold">{profile.noOfPosts || 0}</Text>
+            <Text className="text-xl font-bold">{posts.length || 0}</Text>
             <Text className="text-gray-600">Posts</Text>
           </View>
           <View className="items-center">
@@ -221,7 +225,7 @@ const ProfilePage: React.FC = () => {
           mode="contained"
           icon="pencil"
           onPress={() => setEditModalVisible(true)}
-          className="mx-5 mb-5"
+          className="mx-5 mb-5 "
         >
           Edit Profile
         </Button>

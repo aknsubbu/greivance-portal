@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { View, FlatList, StyleSheet, SafeAreaView } from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import { View, FlatList, SafeAreaView, StyleSheet } from "react-native";
 import {
   Searchbar,
   Chip,
@@ -9,20 +9,12 @@ import {
   Button,
   Menu,
   Divider,
-  List,
 } from "react-native-paper";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-
-type Post = {
-  id: string;
-  title: string;
-  author: string;
-  date: Date;
-  location: string;
-  content: string;
-};
+import { getAllPosts } from "@/functions/postFunctions";
+import Post from "@/interfaces/Post";
 
 type FilterOptions = {
   title: boolean;
@@ -44,31 +36,29 @@ const SearchPage: React.FC = () => {
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [menuVisible, setMenuVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Simulated data fetching
-  useEffect(() => {
-    // This would typically be an API call
-    const fetchedPosts: Post[] = [
-      {
-        id: "1",
-        title: "First Post",
-        author: "John Doe",
-        date: new Date("2023-05-01"),
-        location: "New York",
-        content: "Content of first post",
-      },
-      {
-        id: "2",
-        title: "Second Post",
-        author: "Jane Smith",
-        date: new Date("2023-05-15"),
-        location: "Los Angeles",
-        content: "Content of second post",
-      },
-      // Add more sample posts as needed
-    ];
-    setPosts(fetchedPosts);
+  const loadData = useCallback(async () => {
+    try {
+      const [fetchedPosts] = await Promise.all([getAllPosts()]);
+      setPosts(fetchedPosts);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadData();
+  }, [loadData]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -76,13 +66,16 @@ const SearchPage: React.FC = () => {
     const filtered = posts.filter((post) => {
       return (
         (filterOptions.title &&
-          post.title.toLowerCase().includes(lowercasedQuery)) ||
+          post.postTitle.toLowerCase().includes(lowercasedQuery)) ||
         (filterOptions.author &&
-          post.author.toLowerCase().includes(lowercasedQuery)) ||
+          post.postAuthor.toLowerCase().includes(lowercasedQuery)) ||
         (filterOptions.location &&
-          post.location.toLowerCase().includes(lowercasedQuery)) ||
+          post.postLocation
+            .join(",")
+            .toLowerCase()
+            .includes(lowercasedQuery)) ||
         (filterOptions.date &&
-          post.date.toDateString().toLowerCase().includes(lowercasedQuery))
+          post.postDate.toDateString().toLowerCase().includes(lowercasedQuery))
       );
     });
     setFilteredPosts(filtered);
@@ -106,83 +99,125 @@ const SearchPage: React.FC = () => {
   const renderPostItem = ({ item }: { item: Post }) => (
     <Card style={styles.card}>
       <Card.Content>
-        <Title>{item.title}</Title>
-        <Paragraph>Author: {item.author}</Paragraph>
-        <Paragraph>Date: {item.date.toDateString()}</Paragraph>
-        <Paragraph>Location: {item.location}</Paragraph>
+        <Title>{item.postTitle}</Title>
+        <Paragraph>Author: {item.postAuthor}</Paragraph>
+        <Paragraph>Date: {item.postDate.toDateString()}</Paragraph>
+        <Paragraph>Location: {item.postLocation}</Paragraph>
       </Card.Content>
     </Card>
   );
 
   return (
     <SafeAreaView style={styles.container}>
-      <Searchbar
-        placeholder="Search posts"
-        onChangeText={handleSearch}
-        value={searchQuery}
-        style={styles.searchBar}
-      />
-      <View style={styles.filterContainer}>
-        <Chip
-          selected={filterOptions.title}
-          onPress={() => toggleFilterOption("title")}
-          style={styles.filterChip}
-        >
-          Title
-        </Chip>
-        <Chip
-          selected={filterOptions.author}
-          onPress={() => toggleFilterOption("author")}
-          style={styles.filterChip}
-        >
-          Author
-        </Chip>
-        <Chip
-          selected={filterOptions.location}
-          onPress={() => toggleFilterOption("location")}
-          style={styles.filterChip}
-        >
-          Location
-        </Chip>
-        <Menu
-          visible={menuVisible}
-          onDismiss={() => setMenuVisible(false)}
-          anchor={
-            <Button onPress={() => setMenuVisible(true)}>Date Filter</Button>
-          }
-        >
-          <Menu.Item
-            onPress={() => {
-              setDatePickerVisible(true);
-              setMenuVisible(false);
-            }}
-            title="Select Date"
-          />
-          <Divider />
-          <Menu.Item
-            onPress={() => {
-              setSelectedDate(new Date());
-              handleSearch("");
-              setMenuVisible(false);
-            }}
-            title="Clear Date Filter"
-          />
-        </Menu>
-      </View>
-      {datePickerVisible && (
-        <DateTimePicker
-          value={selectedDate}
-          mode="date"
-          display="default"
-          onChange={handleDateChange}
+      <View style={styles.content}>
+        <Searchbar
+          placeholder="Search posts"
+          onChangeText={handleSearch}
+          value={searchQuery}
+          style={styles.searchBar}
         />
-      )}
-      <FlatList
-        data={filteredPosts}
-        renderItem={renderPostItem}
-        keyExtractor={(item) => item.id}
-        style={styles.list}
-      />
+        <View style={styles.filterContainer}>
+          <View style={styles.chipRow}>
+            <Chip
+              selected={filterOptions.title}
+              onPress={() => toggleFilterOption("title")}
+              style={[
+                styles.chip,
+                filterOptions.title
+                  ? styles.selectedChip
+                  : styles.unselectedChip,
+              ]}
+              textStyle={
+                filterOptions.title
+                  ? styles.selectedChipText
+                  : styles.unselectedChipText
+              }
+            >
+              Title
+            </Chip>
+            <Chip
+              selected={filterOptions.author}
+              onPress={() => toggleFilterOption("author")}
+              style={[
+                styles.chip,
+                filterOptions.author
+                  ? styles.selectedChip
+                  : styles.unselectedChip,
+              ]}
+              textStyle={
+                filterOptions.author
+                  ? styles.selectedChipText
+                  : styles.unselectedChipText
+              }
+            >
+              Author
+            </Chip>
+            <Chip
+              selected={filterOptions.location}
+              onPress={() => toggleFilterOption("location")}
+              style={[
+                styles.chip,
+                filterOptions.location
+                  ? styles.selectedChip
+                  : styles.unselectedChip,
+              ]}
+              textStyle={
+                filterOptions.location
+                  ? styles.selectedChipText
+                  : styles.unselectedChipText
+              }
+            >
+              Location
+            </Chip>
+          </View>
+          <View style={styles.dateFilterContainer}>
+            <Menu
+              visible={menuVisible}
+              onDismiss={() => setMenuVisible(false)}
+              anchor={
+                <Button
+                  onPress={() => setMenuVisible(true)}
+                  mode="contained"
+                  style={styles.dateFilterButton}
+                >
+                  Date Filter
+                </Button>
+              }
+            >
+              <Menu.Item
+                onPress={() => {
+                  setDatePickerVisible(true);
+                  setMenuVisible(false);
+                }}
+                title="Select Date"
+              />
+              <Divider />
+              <Menu.Item
+                onPress={() => {
+                  setSelectedDate(new Date());
+                  handleSearch("");
+                  setMenuVisible(false);
+                }}
+                title="Clear Date Filter"
+              />
+            </Menu>
+          </View>
+        </View>
+        {datePickerVisible && (
+          <DateTimePicker
+            value={selectedDate}
+            mode="date"
+            display="default"
+            onChange={handleDateChange}
+          />
+        )}
+        <FlatList
+          data={filteredPosts}
+          renderItem={renderPostItem}
+          keyExtractor={(item) => item._id}
+          style={styles.list}
+        />
+      </View>
     </SafeAreaView>
   );
 };
@@ -190,22 +225,49 @@ const SearchPage: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
+    backgroundColor: "white",
+  },
+  content: {
+    padding: 16,
   },
   searchBar: {
-    marginBottom: 10,
+    marginBottom: 16,
   },
   filterContainer: {
-    flexDirection: "row",
-    marginBottom: 10,
-    flexWrap: "wrap",
+    marginBottom: 16,
   },
-  filterChip: {
-    marginRight: 5,
-    marginBottom: 5,
+  chipRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  chip: {
+    flex: 1,
+    marginHorizontal: 4,
+    borderWidth: 1,
+  },
+  selectedChip: {
+    backgroundColor: "#e6dff6",
+    borderColor: "#2980b9",
+  },
+  unselectedChip: {
+    backgroundColor: "#ecf0f1",
+    borderColor: "#bdc3c7",
+  },
+  selectedChipText: {
+    color: "black",
+  },
+  unselectedChipText: {
+    color: "black",
+  },
+  dateFilterContainer: {
+    width: "100%",
+  },
+  dateFilterButton: {
+    width: "100%",
   },
   card: {
-    marginBottom: 10,
+    marginBottom: 16,
   },
   list: {
     flex: 1,

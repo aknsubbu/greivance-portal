@@ -157,7 +157,7 @@ const AddPost = () => {
           onPress={handleCreatePost}
           loading={loading}
           disabled={loading || !profile}
-          className="mt-4"
+          className="mt-4 mb-20"
         >
           Create Post
         </Button>

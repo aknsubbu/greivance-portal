@@ -149,7 +149,7 @@ export default function PostCard({ post }: PostProps) {
           icon="dots-horizontal"
           size={20}
           onPress={() => {}}
-          iconColor="#fff"
+          iconColor="#63519f"
         />
       </View>
 
@@ -173,7 +173,7 @@ export default function PostCard({ post }: PostProps) {
           <MaterialCommunityIcons
             name="map-marker-outline"
             size={16}
-            color="#fff"
+            color="#63519f"
           />
           <Text style={styles.locationText}>
             {post.postLocation.join(", ")}
@@ -187,7 +187,7 @@ export default function PostCard({ post }: PostProps) {
             icon="comment-outline"
             size={20}
             onPress={() => setCommentsVisible(true)}
-            iconColor="#fff"
+            iconColor="#63519f"
           />
           <Text style={styles.actionText}>{comments.length}</Text>
         </View>
@@ -196,7 +196,7 @@ export default function PostCard({ post }: PostProps) {
             icon="repeat"
             size={20}
             onPress={() => {}}
-            iconColor="#fff"
+            iconColor="#63519f"
           />
           <Text style={styles.actionText}>0</Text>
         </View>
@@ -205,7 +205,7 @@ export default function PostCard({ post }: PostProps) {
             icon={liked ? "heart" : "heart-outline"}
             size={20}
             onPress={handleLike}
-            iconColor={liked ? "#ff6b6b" : "#fff"}
+            iconColor={liked ? "#ff6b6b" : "#63519f"}
           />
           <Text style={styles.actionText}>{likeCount}</Text>
         </View>
@@ -213,10 +213,14 @@ export default function PostCard({ post }: PostProps) {
           icon="share-variant-outline"
           size={20}
           onPress={() => {}}
-          iconColor="#fff"
+          iconColor="#63519f"
         />
         <View style={styles.viewsContainer}>
-          <MaterialCommunityIcons name="eye-outline" size={16} color="#fff" />
+          <MaterialCommunityIcons
+            name="eye-outline"
+            size={16}
+            color="#63519f"
+          />
           <Text style={styles.viewsText}>{post.postViewCounter}</Text>
         </View>
       </View>
@@ -237,7 +241,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     borderRadius: 12,
     padding: 16,
-    backgroundColor: "#201E43",
+    backgroundColor: "#e6dff6",
   },
   headerContainer: {
     flexDirection: "row",
@@ -251,18 +255,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#fff",
+    color: "#000",
   },
   date: {
     fontSize: 12,
-    color: "#b3b3b3",
+    color: "#000",
     marginTop: 2,
   },
   description: {
     fontSize: 14,
     marginBottom: 16,
     lineHeight: 20,
-    color: "#e0e0e0",
+    color: "#000000",
   },
   tagsContainer: {
     flexDirection: "row",
@@ -277,7 +281,7 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontSize: 12,
-    color: "#b3b3b3",
+    color: "#63519f",
   },
   locationContainer: {
     flexDirection: "row",
@@ -286,7 +290,7 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 12,
-    color: "#b3b3b3",
+    color: "#000",
     marginLeft: 4,
   },
   actionsContainer: {
@@ -300,7 +304,7 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: 12,
-    color: "#b3b3b3",
+    color: "#000",
     marginLeft: -8,
   },
   viewsContainer: {
@@ -309,7 +313,7 @@ const styles = StyleSheet.create({
   },
   viewsText: {
     fontSize: 12,
-    color: "#b3b3b3",
+    color: "#000",
     marginLeft: 4,
   },
   commentItem: {

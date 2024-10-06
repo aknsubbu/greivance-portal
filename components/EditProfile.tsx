@@ -43,6 +43,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   );
   const [loading, setLoading] = useState(false);
 
+  const location = [locationState.latitude, locationState.longitude].join(", ");
+
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -71,7 +73,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         name,
         tag,
         location,
-        dateOfBirth: dateOfBirth.toISOString(),
+        dateOfBirth: dateOfBirth,
         profileDescription,
         profilePicture,
       };
@@ -136,7 +138,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         />
         <TextInput
           label="Location"
-          value={[locationState.latitude, locationState.longitude].join(", ")}
+          value={location}
           mode="outlined"
           className="mb-4"
         />
