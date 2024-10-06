@@ -11,10 +11,9 @@ import "react-native-reanimated";
 import { Provider } from "react-native-paper";
 import { getProfileById } from "@/functions/profileFunctions";
 import { saveProfile } from "@/functions/profileAsyncStorage";
-
 import { useColorScheme } from "@/hooks/useColorScheme";
+import ErrorScreen from "./ErrorPage";
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -22,37 +21,42 @@ export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
-
-  const [loaded, setLoaded] = useState(false);
-  const [profileData, setProfileData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    async function loadProfile() {
-      const profileData = await getProfileById("66273cab79adffeceebab991");
-      saveProfile(profileData);
-      setProfileData(profileData);
+    async function prepare() {
+      try {
+        if (fontsLoaded) {
+          const profileData = await getProfileById("66273cab79adffeceebab991");
+          await saveProfile(profileData);
+        }
+      } catch (e) {
+        console.warn(e);
+        setError(
+          e instanceof Error ? e : new Error("An unknown error occurred")
+        );
+      } finally {
+        setIsLoading(false);
+      }
     }
 
-    if (fontsLoaded) {
-      loadProfile();
-    }
+    prepare();
   }, [fontsLoaded]);
 
   useEffect(() => {
-    if (fontsLoaded && profileData) {
-      setLoaded(true);
+    if (!isLoading) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, profileData]);
+  }, [isLoading]);
 
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+  if (isLoading) {
+    return null; // This will keep the splash screen visible
+  }
 
-  if (!loaded) {
-    return null;
+  if (error) {
+    // You should create an ErrorScreen component to handle errors gracefully
+    return <ErrorScreen error={error.message} />;
   }
 
   return (
